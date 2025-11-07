@@ -1,13 +1,11 @@
 import React from 'react'
 import {notFound} from "next/navigation";
-import {IEvent} from "@/database";
 import {getSimilarEventsBySlug} from "@/lib/actions/event.actions";
 import Image from "next/image";
 import BookEvent from "@/components/BookEvent";
 import EventCard from "@/components/EventCard";
-import {cacheLife} from "next/cache";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+import Event from "@/database/event.model";
+import connectDB from "@/lib/mongodb";
 
 const EventDetailItem = ({ icon, alt, label }: { icon: string; alt: string; label: string; }) => (
     <div className="flex-row-gap-2 items-center">
@@ -59,22 +57,10 @@ const EventTags = ({ tags }: { tags: string[] }) => (
 )
 
 const EventDetails = async ({ slug }: { slug: string }) => {
-
-    let event;
+    let event: any;
     try {
-        const request = await fetch(`${BASE_URL}/api/events/${slug}`, {
-            next: { revalidate: 60 }
-        });
-
-        if (!request.ok) {
-            if (request.status === 404) {
-                return notFound();
-            }
-            throw new Error(`Failed to fetch event: ${request.statusText}`);
-        }
-
-        const response = await request.json();
-        event = response.event;
+        await connectDB();
+        event = await Event.findOne({ slug }).lean();
 
         if (!event) {
             return notFound();
@@ -94,7 +80,7 @@ const EventDetails = async ({ slug }: { slug: string }) => {
     const bookings = 10;
 
     const similarEventsRaw = await getSimilarEventsBySlug(slug);
-    const similarEvents: IEvent[] = JSON.parse(JSON.stringify(similarEventsRaw));
+    const similarEvents: any[] = similarEventsRaw;
 
     return (
         <section id="event">
@@ -145,7 +131,7 @@ const EventDetails = async ({ slug }: { slug: string }) => {
                             <p className="text-sm">Be the first to book your spot!</p>
                         )}
 
-                        <BookEvent eventId={event._id} slug={event.slug} />
+                        <BookEvent eventId={String(event._id)} slug={event.slug} />
                     </div>
                 </aside>
             </div>
@@ -153,8 +139,8 @@ const EventDetails = async ({ slug }: { slug: string }) => {
             <div className="flex w-full flex-col gap-4 pt-20">
                 <h2>Similar Events</h2>
                 <div className="events">
-                    {similarEvents.length > 0 && similarEvents.map((similarEvent: IEvent) => (
-                        <EventCard key={similarEvent.title} {...similarEvent} />
+                    {similarEvents.length > 0 && similarEvents.map((similarEvent: any) => (
+                        <EventCard key={similarEvent._id?.toString() || similarEvent.slug} {...similarEvent} />
                     ))}
                 </div>
             </div>
