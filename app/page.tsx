@@ -1,13 +1,18 @@
 import ExploreBtn from "@/components/ExploreBtn";
 import EventCard from "@/components/EventCard";
-import {IEvent} from "@/database";
 import {cacheLife} from "next/cache";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+import Event from "@/database/event.model";
+import connectDB from "@/lib/mongodb";
 
 const Page = async () => {
-    const response = await fetch(`${BASE_URL}/api/events`);
-    const { events } = await response.json();
+    let events: any[] = [];
+    
+    try {
+        await connectDB();
+        events = await Event.find().sort({ createdAt: -1 }).lean();
+    } catch (error) {
+        console.error('Error fetching events:', error);
+    }
 
     return (
         <section>
@@ -20,8 +25,8 @@ const Page = async () => {
                 <h3>Featured Events</h3>
 
                 <ul className="events">
-                    {events && events.length > 0 && events.map((event: IEvent) => (
-                        <li key={event.title} className="list-none">
+                    {events && events.length > 0 && events.map((event: any) => (
+                        <li key={event._id?.toString() || event.slug} className="list-none">
                             <EventCard {...event} />
                         </li>
                     ))}
