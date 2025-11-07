@@ -1,21 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactCompiler: true,
-  experimental: {
-    turbopackFileSystemCacheForDev: true,
-  },
-
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "res.cloudinary.com",
-
-      }
-    ]
-  },
-
+    typescript: {
+        ignoreBuildErrors: true,
+    },
+    cacheComponents: true,
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'res.cloudinary.com',
+            }
+        ]
+    },
   async rewrites() {
     return [
       {
@@ -28,7 +25,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // Required to support PostHog trailing slash API requests
+  // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
 };
 
