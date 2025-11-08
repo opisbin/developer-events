@@ -7,12 +7,11 @@ type EventDetailsPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-// Generate static params for all events at build time
 export async function generateStaticParams() {
   try {
     await connectDB();
     const events = await Event.find().select('slug').lean();
-    
+
     return events.map((event: any) => ({
       slug: event.slug,
     }));
@@ -24,7 +23,7 @@ export async function generateStaticParams() {
 
 const EventDetailsPage = async ({ params }: EventDetailsPageProps) => {
   const { slug } = await params;
-  
+
   return (
     <main>
       <Suspense fallback={<div className="container mx-auto py-20 text-center">Loading event details...</div>}>
